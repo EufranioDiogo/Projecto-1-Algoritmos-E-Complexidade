@@ -42,26 +42,31 @@ int main() {
     char instrucao[INSTRUCTION_LENGTH];
     Plane *planes = (Plane *)(malloc(PLANES_QUANT * sizeof(Plane)));
     char comand[] = "INC 2 Eufranio Diogo 007260431LA040";
+    int i = 0;
 
-    int comandCode = checkComand(comand);
+    while(i < 10) {
+        int comandCode = checkComand(comand);
 
-    if (comandCode != -1) {
-        if (comandCode == 1) {
-            registerPassenger(comand, planes);
-        } else if (comandCode == 2) {
-            removePassenger(comand, planes);
-        } else if (comandCode == 3) {
-            verifyPassengerByBI(comand, planes);
-        } else if (comandCode == 4) {
-            verifyPassengerByName(comand, planes);
-        } else if (comandCode == 5) {
-            listPassengerOnThePlane(comand, planes);
+        if (comandCode != -1) {
+            if (comandCode == 1) {
+                registerPassenger(comand, planes);
+            } else if (comandCode == 2) {
+                removePassenger(comand, planes);
+            } else if (comandCode == 3) {
+                verifyPassengerByBI(comand, planes);
+            } else if (comandCode == 4) {
+                verifyPassengerByName(comand, planes);
+            } else if (comandCode == 5) {
+                listPassengerOnThePlane(comand, planes);
+            } else {
+                end();
+            }
         } else {
-            end();
+            printf("\nCOMAND NOT FOUNDED");
         }
-    } else {
-        printf("\nCOMAND NOT FOUNDED");
+        i++;
     }
+    
     return 1;
 }
 
