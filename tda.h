@@ -1,19 +1,19 @@
 #define NAME_LENGTH 100
 #define BI_LENGTH 15
 
-typedef struct {
+typedef struct node {
     char firstName[NAME_LENGTH];
-    char lastName[NAME_LENGTH]
+    char lastName[NAME_LENGTH];
     char bi[BI_LENGTH];
-    struct Node *nextNode;
+    struct node *nextNode;
 } Node;
 
-typedef struct {
+typedef struct list {
     Node *head;
-    int quant = 0;
+    int quant;
 } List;
 
-typedef struct {
+typedef struct plane {
     List *passengersReady;
     List *passengersStandby;
 } Plane;

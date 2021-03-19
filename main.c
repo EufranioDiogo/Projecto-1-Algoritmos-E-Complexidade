@@ -40,7 +40,7 @@ int checkComand(char *comand) {
 
 int main() {
     char instrucao[INSTRUCTION_LENGTH];
-    Plane planes[PLANES_QUANT];
+    Plane *planes = (Plane *)(malloc(PLANES_QUANT * sizeof(Plane)));
     char comand[] = "INC 2 Eufranio Diogo 007260431LA040";
 
     int comandCode = checkComand(comand);
@@ -60,9 +60,14 @@ int main() {
             end();
         }
     } else {
-        printf("COMAND NOT FOUNDED");
+        printf("\nCOMAND NOT FOUNDED");
     }
     return 1;
+}
+
+void printfPassenger(Node *passenger) {
+    printf("\nNome: %s %s", passenger -> firstName, passenger -> lastName);
+    printf("\nBI: %s", passenger -> bi);
 }
 
 void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi) {
@@ -77,10 +82,12 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
     i++;
 
 
+    
     for (; *(comand + i) != ' '; i++) {
         firstName[j] = *(comand + i);
         j++;
     }
+
     j = 0;
     i++;
 
@@ -98,13 +105,28 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
 }
 
 void saveDataOnPassenger(Node *newPassenger, char *firstName, char *lastName, char *bi) {
-    *newPassenger -> firstName = firstName;
-    *newPassenger -> lastName = lastName;
-    *newPassenger -> bi = bi;
+    int i = 0;
+
+    while (*(firstName + i) != '\0') {
+        *(newPassenger -> firstName + i) = *(firstName + i);
+        i++;
+    }
+    i = 0;
+    
+    while (*(lastName + i) != '\0') {
+        *(newPassenger -> lastName + i) = *(lastName + i);
+        i++;
+    }
+    i = 0;
+
+    while (*(bi + i) != '\0') {
+        *(newPassenger -> bi + i) = *(bi + i);
+        i++;
+    }
 }
 
 void addPassenger(Plane *plane, Node *newPassenger) {
-    if (*(plane -> passengersReady -> quant) < 5) {
+    if ((plane -> passengersReady -> quant) < 5) {
         Node *auxNode = plane -> passengersReady -> head;
 
         if (auxNode == NULL) {
@@ -115,9 +137,10 @@ void addPassenger(Plane *plane, Node *newPassenger) {
             }
             auxNode -> nextNode = newPassenger;
         }
-        *(plane -> passengersReady -> quant) += 1;
-        printf("Passenger added at the normal queue");
-    } else if (*(plane -> passengersStandby -> quant) < 5) {
+        (plane -> passengersReady -> quant) = plane -> passengersReady -> quant + 1;
+
+        printf("\nPassenger added at the normal queue");
+    } else if ((plane -> passengersStandby -> quant) < 5) {
         Node *auxNode = plane -> passengersStandby -> head;
 
         if (auxNode == NULL) {
@@ -128,30 +151,78 @@ void addPassenger(Plane *plane, Node *newPassenger) {
             }
             auxNode -> nextNode = newPassenger;
         }
-        *(plane -> passengersStandby -> quant) += 1;
-        printf("Passenger added at the standby queue");
+        (plane -> passengersStandby -> quant) = plane -> passengersStandby -> quant + 1;
+        printf("\nPassenger added at the standby queue");
     } else {
-        printf("List Is Full");
+        printf("\nList Is Full");
     }
 }
 
 void registerPassenger(char *comand, Plane *planes) {
-    char planeNumber[2];
-    char firstName[50];
-    char lastName[50];
-    char bi[15];
+    char planeNumber[2] = {'a', 'a'};
+    char firstName[NAME_LENGTH];
+    char lastName[NAME_LENGTH];
+    char bi[BI_LENGTH];
 
-    Node newPassenger = (Node *)(malloc(sizeof(Node)));
+    Node *newPassenger = (Node *)(malloc(sizeof(Node)));
     readData(comand, planeNumber, firstName, lastName, bi);
-    saveDataOnPassenger(newPassenger, firstName, lastName, bi)
+
+    saveDataOnPassenger(newPassenger, firstName, lastName, bi);
 
 
     int planeIndex = atoi(planeNumber) - 1;
 
-    if ((planes + planeIndex) == NULL) {
-        (planes + planeIndex) = (Plane *)(malloc(sizeof(Plane)));
+    if ((planes + planeIndex) -> passengersReady == NULL || (planes + planeIndex) -> passengersStandby == NULL) {
         (planes + planeIndex) -> passengersReady = (List *)(malloc(sizeof(List)));
         (planes + planeIndex) -> passengersStandby = (List *)(malloc(sizeof(List)));
+        (planes + planeIndex) -> passengersReady -> quant = 0;
+        (planes + planeIndex) -> passengersStandby -> quant = 0;
     }
     addPassenger((planes + planeIndex), newPassenger);
+    listPassengerOnThePlane(comand, planes);
+}
+
+
+Node* removePassenger(char *comand, Plane *planes) {
+    return NULL;
+}
+Node* verifyPassengerByBI(char *comand, Plane *planes) {
+    return NULL;
+}
+Node* verifyPassengerByName(char *comand, Plane *planes) {
+    return NULL;
+}
+void listPassengerOnThePlane(char *comand, Plane *planes) {
+    char planeNumber[2] = {'a', 'a'};
+    int j = 0;
+    int i = 4;
+    
+    for (; *(comand + i) != ' '; i++) {
+        planeNumber[j] = *(comand + i);
+        j++;
+    }
+    j = 0;
+    i++;
+
+    int planeIndex = atoi(planeNumber) - 1;
+
+    if ((planes + planeIndex) != NULL) {
+        Node *auxNode = (planes + planeIndex) -> passengersReady -> head;
+
+        while (auxNode != NULL) {
+            printfPassenger(auxNode);
+            auxNode = auxNode -> nextNode;
+        }
+
+        auxNode = (planes + planeIndex) -> passengersStandby -> head;
+
+        while (auxNode != NULL) {
+            printfPassenger(auxNode);
+            auxNode = auxNode -> nextNode;
+        }
+    }
+
+}
+void end() {
+
 }
