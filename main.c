@@ -25,14 +25,14 @@ int checkComand(char *comand) {
         return 1;
     } else if (result[0] == 'R' && result[1] == 'E' && result[2] == 'M') {
         return 2;
-    } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'D') {
+    } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'B') {
         return 3;
     } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'N') {
         return 4;
+    }  else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
+        return 6;
     } else if (result[0] == 'L' && result[1] == 'I' && result[2] == 'S' && result[3] == 'T') {
         return 5;
-    } else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
-        return 6;
     }
     return -1;
 }
@@ -41,11 +41,15 @@ int checkComand(char *comand) {
 int main() {
     char instrucao[INSTRUCTION_LENGTH];
     Plane *planes = (Plane *)(malloc(PLANES_QUANT * sizeof(Plane)));
-    char comand[] = "INC 2 Eufranio Diogo 007260431LA040";
     int i = 0;
+    char comand[INSTRUCTION_LENGTH];
+    int comandCode;
+    
 
-    while(i < 10) {
-        int comandCode = checkComand(comand);
+    for (; comandCode != 6;) {
+        printf("-------------------------------------\n");
+        fgets(comand, sizeof(comand), stdin);
+        comandCode = checkComand(comand);
 
         if (comandCode != -1) {
             if (comandCode == 1) {
@@ -59,14 +63,14 @@ int main() {
             } else if (comandCode == 5) {
                 listPassengerOnThePlane(comand, planes);
             } else {
-                end();
+                printf("\nProgram closed");
+                break;
             }
         } else {
             printf("\nCOMAND NOT FOUNDED");
         }
-        i++;
     }
-    
+
     return 1;
 }
 
@@ -106,6 +110,12 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
     for (; *(comand + i) != ' '; i++) {
         bi[j] = *(comand + i);
         j++;
+    }
+}
+
+void swapFromStandbyToReady(Plane *plane) {
+    if (plane != NULL) {
+        plane -> 
     }
 }
 
@@ -187,15 +197,217 @@ void registerPassenger(char *comand, Plane *planes) {
     listPassengerOnThePlane(comand, planes);
 }
 
+int equalStrings(char *bi1, char *bi2) {
+    for (int i = 0; *(bi1 + i) != '\0'; i++) {
+        if (*(bi1 + i) != *(bi2 + i)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+Node* removeOnReadyList(int planeID, char *BI, Plane *plane) {
+    Node *actualNode = plane -> passengersReady -> head;
+    Node *prevNode = NULL;
+    int flagPassengerFounded = 0;
+
+
+    while(actualNode != NULL) {
+        if (equalStrings(BI, actualNode -> bi) == 1) {
+            flagPassengerFounded = 1;
+            break;
+        }
+        prevNode = actualNode;
+        actualNode = actualNode -> nextNode;
+    }
+
+    if (flagPassengerFounded == 1) {
+        if (prevNode == NULL) {
+            plane -> passengersReady -> head = actualNode -> nextNode;
+        } else if (actualNode -> nextNode == NULL) {
+            prevNode -> nextNode = NULL;
+        } else {
+            prevNode -> nextNode =  actualNode -> nextNode;
+        }
+        plane -> passengersReady -> quant = plane -> passengersReady -> quant - 1;
+        return actualNode;
+    }
+    return NULL;
+}
+
+Node* removeOnStandbyList(int planeID, char *BI, Plane *plane) {
+    Node *actualNode = plane -> passengersStandby -> head;
+    Node *prevNode;
+    int flagPassengerFounded = 0;
+
+
+    while(actualNode != NULL) {
+        if (equalStrings(BI, actualNode -> bi) == 1) {
+            flagPassengerFounded = 1;
+            break;
+        }
+        prevNode = actualNode;
+        actualNode = actualNode -> nextNode;
+    }
+
+    if (flagPassengerFounded == 1) {
+        if (prevNode == NULL) {
+            plane -> passengersStandby -> head = actualNode -> nextNode;
+        } else if (actualNode -> nextNode == NULL) {
+            prevNode -> nextNode = NULL;
+        } else {
+            prevNode -> nextNode =  actualNode -> nextNode;
+        }
+        plane -> passengersStandby -> quant = plane -> passengersStandby -> quant - 1;
+        return actualNode;
+    }
+    return NULL;
+}
+
+Node* removeAuxMethod(int planeID, char *BI, Plane *planes) {
+    Plane *plane = (planes + planeID);
+    Node *result;
+
+    result = removeOnReadyList(planeID, BI, plane);
+
+    if (result == NULL) {
+        result = removeOnStandbyList(planeID, BI, plane);
+    }
+    return result;
+}
 
 Node* removePassenger(char *comand, Plane *planes) {
+    char characterID[] = {'a', 'a'};
+    int i = 4;
+    for (; *(comand + i) != ' '; i++) {
+        characterID[i - 4] = *(comand + i);
+    }
+    int planeID = atoi(characterID) - 1;
+    i++;
+
+    char BI[BI_LENGTH];
+    int startBIIndex = i;
+
+    while (*(comand + i) != '\0') {
+        BI[i - startBIIndex] = *(comand + i);
+        i++;
+    }
+
+    Node *passenger = removeAuxMethod(planeID, BI, planes);
+    if (passenger != NULL) {
+        printf("Deleted");
+    }
+    return passenger;
+}
+
+Node* verifyOnReadyList(int planeID, char *string, Plane *plane) {
+    Node *actualNode = plane -> passengersReady -> head;
+
+    while(actualNode != NULL) {
+        if (equalStrings(string, actualNode -> bi) == 1) {
+            return actualNode;
+        }
+        actualNode = actualNode -> nextNode;
+    }
     return NULL;
 }
+
+Node* verifyOnStandbyList(int planeID, char *string, Plane *plane) {
+    Node *actualNode = plane -> passengersStandby -> head;
+
+    while(actualNode != NULL) {
+        if (equalStrings(string, actualNode -> bi) == 1) {
+            return actualNode;
+        }
+        actualNode = actualNode -> nextNode;
+    }
+    return NULL;
+}
+
+Node* verifyAuxMethod(int planeID, char *BI, Plane *planes) {
+    Plane *plane = (planes + planeID);
+    Node *result;
+
+    result = verifyOnReadyList(planeID, BI, plane);
+
+    if (result == NULL) {
+        result = verifyOnStandbyList(planeID, BI, plane);
+        if(result != NULL) {
+            printf("\n\\\\\\\\\\\\| Passenger Standby Queue |///////\n");
+        }
+    } else {
+        printf("\n\\\\\\\\\\\\| Passenger Ready Queue |///////\n");
+    }
+    
+    if(result == NULL) {
+        printf("\n----------- Passenger Not Found -----------\n");
+    }
+    return result;
+}
+
+
 Node* verifyPassengerByBI(char *comand, Plane *planes) {
-    return NULL;
+    char characterID[] = {'a', 'a'};
+    int i = 4;
+    for (; *(comand + i) != ' '; i++) {
+        characterID[i - 4] = *(comand + i);
+    }
+    int planeID = atoi(characterID) - 1;
+    i++;
+
+    char BI[BI_LENGTH];
+    int startBIIndex = i;
+
+    while (*(comand + i) != '\0') {
+        BI[i - startBIIndex] = *(comand + i);
+        i++;
+    }
+
+    Node *passenger = verifyAuxMethod(planeID, BI, planes);
+    if (passenger != NULL) {
+        printfPassenger(passenger);
+    }
+    return passenger;
 }
+
 Node* verifyPassengerByName(char *comand, Plane *planes) {
-    return NULL;
+    char FIRST_NAME[NAME_LENGTH];
+    int i = 4;
+    int startFirstNameIndex = i;
+    int queueFounded = -1;
+
+    while (*(comand + i) != '\0') {
+        FIRST_NAME[i - startFirstNameIndex] = *(comand + i);
+        i++;
+    }
+
+    Node *passenger;
+
+    for (i = 0; i < PLANES_QUANT; i++) {
+        passenger = verifyOnReadyList(i, FIRST_NAME, (planes + i));
+        if (passenger != NULL) {
+            queueFounded = 0;
+            break;
+        } else {
+            passenger = verifyOnStandbyList(i, FIRST_NAME, (planes + i));
+            if(passenger != NULL) {
+                queueFounded = 1;
+                break;
+            }
+        }
+    }
+
+    if (passenger != NULL) {
+        printf("\nWe found passenger at plane %d ", i + 1);
+        if (queueFounded == 0) {
+            printf("Ready Queue");
+        } else {
+            printf("Standby Queue");
+        }
+        printf("\n");
+        printfPassenger(passenger);
+    }
+    return passenger;
 }
 void listPassengerOnThePlane(char *comand, Plane *planes) {
     char planeNumber[2] = {'a', 'a'};
@@ -214,11 +426,14 @@ void listPassengerOnThePlane(char *comand, Plane *planes) {
     if ((planes + planeIndex) != NULL) {
         Node *auxNode = (planes + planeIndex) -> passengersReady -> head;
 
+        printf("\n\\\\\\\\\\\\| Passenger Ready Queue |///////\n");
+
         while (auxNode != NULL) {
             printfPassenger(auxNode);
             auxNode = auxNode -> nextNode;
         }
 
+        printf("\n-------| Passenger StandBy Queue |-------\n");
         auxNode = (planes + planeIndex) -> passengersStandby -> head;
 
         while (auxNode != NULL) {
