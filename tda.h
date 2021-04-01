@@ -1,19 +1,18 @@
 #define NAME_LENGTH 100
 #define BI_LENGTH 15
+#define PASSENGER_ON_PLANE 5
 
 typedef struct node {
     char firstName[NAME_LENGTH];
     char lastName[NAME_LENGTH];
     char bi[BI_LENGTH];
     struct node *nextNode;
-} Node;
-
-typedef struct list {
-    Node *head;
-    int quant;
-} List;
+} Passenger;
 
 typedef struct plane {
-    List *passengersReady;
-    List *passengersStandby;
+    int planeID;
+    Passenger *passengersReady[PASSENGER_ON_PLANE];
+    Passenger *passengersStandby[PASSENGER_ON_PLANE];
+    int quantPassengersReady;
+    int quantPassengersStandby;
 } Plane;
