@@ -3,7 +3,7 @@
 #include "tda.h"
 #define INSTRUCTION_LENGTH 120
 #define PLANES_QUANT 12
-#define PLANE_ID_SIZE 2
+#define PLANE_ID_SIZE 4
 
 void registerPassenger(char *comand, Plane *planes);
 Passenger* removePassenger(char *comand, Plane *planes);
@@ -16,6 +16,7 @@ void saveDataOnPassenger(Passenger *newPassenger, char *firstName, char *lastNam
 void addPassenger(Plane *plane, Passenger *newPassenger);
 int verifyName(char *name);
 int equalStrings(char *string1, char *string2);
+int convertStringToInt(char *string);
 void printfPassenger(Passenger *passenger);
 int getStringSize(char *string);
 void setNameAsBadName(char *name);
@@ -57,7 +58,7 @@ void initializePlanes(Plane *planes) {
 }
 
 void initializePlaneNumber(char *planeNumber) {
-    for (int i = 0; i < PLANE_ID_SIZE; i++) {
+    for (int i = 0; i < PLANE_ID_SIZE - 1; i++) {
         *(planeNumber + i) = 'a';
     }
 }
@@ -115,19 +116,27 @@ void registerPassenger(char *comand, Plane *planes) {
     char firstName[NAME_LENGTH];
     char lastName[NAME_LENGTH];
     char bi[BI_LENGTH];
+    int planeIndex;
 
     Passenger *newPassenger = (Passenger *)(malloc(sizeof(Passenger)));
     readData(comand, planeNumber, firstName, lastName, bi);  // Insert all data sended to each corresponded field
 
-    if (firstName[0] == '0' || lastName[0] == '0') {
-        printf("\nNomes do passageiro Incorrectos\n");
+
+
+    planeIndex = atoi(planeNumber) - 1;
+
+    if (planeIndex >= 0 && planeIndex < PLANES_QUANT) {
+        if (firstName[0] == '0' || lastName[0] == '0') {
+            printf("\nErro- Nome do Passageiro Incorrecto\n");
+        } else {
+            saveDataOnPassenger(newPassenger, firstName, lastName, bi);
+
+            addPassenger((planes + planeIndex), newPassenger);
+        }
     } else {
-        saveDataOnPassenger(newPassenger, firstName, lastName, bi);
-
-        int planeIndex = atoi(planeNumber) - 1;
-
-        addPassenger((planes + planeIndex), newPassenger);
+        printf("\nErro - Número do voo Inválido");
     }
+    
 }
 
 void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi) {
@@ -138,6 +147,7 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
         planeNumber[j] = *(comand + i);
         j++;
     }
+
     j = 0;
     i++;
     
@@ -156,7 +166,7 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
     j = 0;
     i++;
 
-    for (; *(comand + i) != ' '; i++) {
+    for (; *(comand + i) != '\0'; i++) {
         bi[j] = *(comand + i);
         j++;
     }
@@ -342,21 +352,26 @@ Passenger* removePassenger(char *comand, Plane *planes) {
         j++;
     }
     int planeIndex = atoi(planeNumber) - 1;
-    j = 0;
-    i++;
+    
+    if (planeIndex >= 0 && planeIndex < PLANES_QUANT) {
+        j = 0;
+        i++;
 
-    for (; *(comand + i) != '\0'; i++) {
-        bi[j] = *(comand + i);
-        j++;
+        for (; *(comand + i) != '\0'; i++) {
+            bi[j] = *(comand + i);
+            j++;
+        }
+
+        Passenger *passengerRemoved = removeAux((planes +  planeIndex), bi);
+
+
+        if (passengerRemoved == NULL) {
+            printf("\nErro – Passageiro não consta em nenhuma lista\n");
+        }
+        return passengerRemoved;
     }
-
-    Passenger *passengerRemoved = removeAux((planes +  planeIndex), bi);
-
-
-    if (passengerRemoved == NULL) {
-        printf("\nErro – Passageiro não consta em nenhuma lista\n");
-    }
-    return passengerRemoved;
+    printf("\nErro - Número do voo Inválido");
+    return NULL;
 }
 
 
@@ -372,42 +387,47 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
         j++;
     }
     int planeIndex = atoi(planeNumber) - 1;
-    j = 0;
-    i++;
 
-    for (; *(comand + i) != ' '; i++) {
-        bi[j] = *(comand + i);
-        j++;
-    }
+    if (planeIndex >= 0 && planeIndex < PLANES_QUANT) {
+        j = 0;
+        i++;
 
-    Passenger *passengerFounded = NULL;
-    Plane *plane = (planes + planeIndex);
-
-    i = 0;
-
-    for (i = 0; i < plane -> quantPassengersReady; i++) {
-        if (equalStrings((plane -> passengersReady[i] -> bi), bi)) {
-            passengerFounded = (plane -> passengersReady[i]);
-            i = plane -> quantPassengersReady;
+        for (; *(comand + i) != ' '; i++) {
+            bi[j] = *(comand + i);
+            j++;
         }
-    }
 
-    if (passengerFounded == NULL) {
+        Passenger *passengerFounded = NULL;
+        Plane *plane = (planes + planeIndex);
+
         i = 0;
-        for (i = 0; i < plane -> quantPassengersStandby; i++) {
-            if (equalStrings((plane -> passengersStandby[i] -> bi), bi)) {
-                passengerFounded = (plane -> passengersStandby[i]);
-                i = plane -> quantPassengersStandby;
+
+        for (i = 0; i < plane -> quantPassengersReady; i++) {
+            if (equalStrings((plane -> passengersReady[i] -> bi), bi)) {
+                passengerFounded = (plane -> passengersReady[i]);
+                i = plane -> quantPassengersReady;
             }
         }
 
-        if(passengerFounded != NULL) {
-            printf("Passenger on Standby List");
+        if (passengerFounded == NULL) {
+            i = 0;
+            for (i = 0; i < plane -> quantPassengersStandby; i++) {
+                if (equalStrings((plane -> passengersStandby[i] -> bi), bi)) {
+                    passengerFounded = (plane -> passengersStandby[i]);
+                    i = plane -> quantPassengersStandby;
+                }
+            }
+
+            if(passengerFounded != NULL) {
+                printf("Passenger on Standby List");
+            }
+        } else {
+            printf("Passenger on Ready List");
         }
-    } else {
-        printf("Passenger on Ready List");
+        return passengerFounded;
     }
-    return passengerFounded;
+    printf("\nErro - Número do voo Inválido");
+    return NULL;
 }
 
 /*
@@ -467,15 +487,21 @@ int verifyPlaneID(int planeID) {
 
 int verifyName(char *name) {
     int i = 0;
+    int stringSize = getStringSize(name);
 
-    while (*(name + i) != '\0' && ((*(name + i) >= 60 && *(name + i) <= 90) || (*(name + i) >= 97 && *(name + i) <= 122))) {
+    while (i < stringSize) {
+        if (! ( (*(name + i) >= 60 && *(name + i) <= 90) || (*(name + i) >= 97 && *(name + i) <= 122) ) ) {
+            return -1;
+        }
         i++;
     }
-
-    if (*(name + i) != '\0') {
-        return -1;
-    }
     return 1;
+}
+
+int convertStringToInt(char *string) {
+    int resultInt = 0;
+
+    return -1;
 }
 
 void listPassengerOnThePlane(char *comand, Plane *planes) {

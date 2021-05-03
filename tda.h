@@ -1,5 +1,5 @@
 #define NAME_LENGTH 100
-#define BI_LENGTH 15
+#define BI_LENGTH 17
 #define PASSENGER_ON_PLANE 5
 
 typedef struct node {
