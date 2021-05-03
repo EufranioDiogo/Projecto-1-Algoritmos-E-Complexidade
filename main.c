@@ -75,12 +75,6 @@ int main() {
                 registerPassenger(comand, planes);
             } else if (comandCode == 2) {
                 Passenger *passengerRemoved = removePassenger(comand, planes);
-
-                if (passengerRemoved != NULL) {
-                    printfPassenger(passengerRemoved);
-                } else {
-                    printf("Nenhum passegeiro encontrado");
-                }
             } else if (comandCode == 3) {
                 printf("\n--------- Verify by BI ------------\n");
                 printfPassenger(verifyPassengerByBI(comand, planes));
@@ -90,6 +84,7 @@ int main() {
             } else if (comandCode == 5) {
                 listPassengerOnThePlane(comand, planes);
             } else {
+                end(planes);
                 printf("\nProgram closed");
                 break;
             }
@@ -118,8 +113,6 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
     }
     j = 0;
     i++;
-
-
     
     for (; *(comand + i) != ' '; i++) {
         firstName[j] = *(comand + i);
@@ -164,16 +157,55 @@ void saveDataOnPassenger(Passenger *newPassenger, char *firstName, char *lastNam
 }
 
 void addPassenger(Plane *plane, Passenger *newPassenger) {
-    if ((plane -> quantPassengersReady) < 5) {
-        plane -> passengersReady[plane -> quantPassengersReady] = newPassenger;
-        plane -> quantPassengersReady = plane -> quantPassengersReady + 1;
-        printf("\nPassenger added at the normal queue - Plane %d | Quant: %d", plane -> planeID, plane -> quantPassengersReady);
-    } else if ((plane -> quantPassengersStandby) < 5) {
-        plane -> passengersStandby[plane -> quantPassengersStandby] = newPassenger;
-        plane -> quantPassengersStandby = plane -> quantPassengersStandby + 1;
-        printf("\nPassenger added at the standby queue - Plane %d | Quant: %d", plane -> planeID, plane -> quantPassengersStandby);
+    int validToInsert = 1;
+    int indexOfUserFoundedWithDifferentName = -1;
+
+    for (int i = 0; i < plane -> quantPassengersReady; i++) {
+        if (equalStrings(newPassenger -> bi, (plane -> passengersReady[i]) -> bi)) {
+            validToInsert = 0;
+            if (equalStrings(newPassenger -> firstName, (plane -> passengersReady[i]) -> firstName) == 0 || equalStrings(newPassenger -> lastName, (plane -> passengersReady[i]) -> lastName) == 0) {
+                indexOfUserFoundedWithDifferentName = i;
+            }
+            i = plane -> quantPassengersReady;
+        }
+    }
+
+    if (validToInsert == 0) {
+        printf("Passageiro já está na lista de vôo");
+
+        if (indexOfUserFoundedWithDifferentName != -1) {
+            printf("\nErro – Bilhete de Identidade já inserido\n");
+            printfPassenger((plane -> passengersReady[indexOfUserFoundedWithDifferentName]));
+        } 
     } else {
-        printf("\nPlane is full");
+        for (int i = 0; i < plane -> quantPassengersStandby; i++) {
+            if (equalStrings(newPassenger -> bi, (plane -> passengersStandby[i]) -> bi)) {
+                validToInsert = 0;
+                indexOfUserFoundedWithDifferentName = i;
+                i = plane -> quantPassengersStandby;
+            }
+        }
+
+        if (validToInsert == 0) {
+            printf("Passageiro já está na lista de espera");
+
+            if (indexOfUserFoundedWithDifferentName != -1) {
+                printf("\nErro – Bilhete de Identidade já inserido\n");
+                printfPassenger((plane -> passengersReady[indexOfUserFoundedWithDifferentName]));
+            } 
+        } else {
+            if ((plane -> quantPassengersReady) < 5) {
+                plane -> passengersReady[plane -> quantPassengersReady] = newPassenger;
+                plane -> quantPassengersReady = plane -> quantPassengersReady + 1;
+                printf("\nPassageiro incluído no voo - Plane %d | Quant: %d", plane -> planeID, plane -> quantPassengersReady);
+            } else if ((plane -> quantPassengersStandby) < 5) {
+                plane -> passengersStandby[plane -> quantPassengersStandby] = newPassenger;
+                plane -> quantPassengersStandby = plane -> quantPassengersStandby + 1;
+                printf("\nPassageiro na lista de espera - Plane %d | Quant: %d", plane -> planeID, plane -> quantPassengersStandby);
+            } else {
+                printf("\nErro- não há lugar disponível");
+            }
+        }
     }
 }
 
@@ -242,6 +274,7 @@ Passenger* removeAux(Plane *plane, char *bi) {
     if (startDeleteIndex != -1) {
         removedPassenger = plane -> passengersReady[startDeleteIndex];
 
+        printf("\nPassageiro removido da lista de vôo\n");
         for (int i = startDeleteIndex; i < plane -> quantPassengersReady - 1; i++) {
             plane -> passengersReady[i] = plane -> passengersReady[i + 1];
         }
@@ -264,6 +297,9 @@ Passenger* removeAux(Plane *plane, char *bi) {
         if (startDeleteIndex != -1) {
             removedPassenger = plane -> passengersStandby[startDeleteIndex];
 
+            if (removedPassenger != NULL) {
+                printf("\nPassageiro removido do vôo\n")
+            }
             for (int i = startDeleteIndex; i < plane -> quantPassengersStandby - 1; i++) {
                 plane -> passengersStandby[i] = plane -> passengersStandby[i + 1];
             }
@@ -295,6 +331,10 @@ Passenger* removePassenger(char *comand, Plane *planes) {
 
     Passenger *passengerRemoved = removeAux((planes +  planeIndex), bi);
 
+
+    if (passengerRemoved == NULL) {
+        printf("\nErro – Passageiro não consta em nenhuma lista\n");
+    }
     return passengerRemoved;
 }
 
@@ -339,10 +379,21 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
                 i = plane -> quantPassengersStandby;
             }
         }
+
+        if(passengerFounded != NULL) {
+            printf("Passenger on Standby List");
+        }
+    } else {
+        printf("Passenger on Ready List");
     }
     return passengerFounded;
 }
 
+/*
+---------------------------------
+TO WORK ON
+---------------------------------
+*/
 Passenger* verifyPassengerByName(char *comand, Plane *planes) {
     int j = 0;
     int i = 4;
@@ -381,6 +432,17 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
 
     return passengerFounded;
 }
+/*
+---------------------------------
+---------------------------------
+*/
+
+int verifyPlaneID(int planeID) {
+    if (planeID <= 0 || planeID > PLANES_QUANT) {
+        return 0;
+    }
+    return 1;
+}
 
 void listPassengerOnThePlane(char *comand, Plane *planes) {
     char planeNumber[PLANE_ID_SIZE];
@@ -397,21 +459,50 @@ void listPassengerOnThePlane(char *comand, Plane *planes) {
 
     int planeIndex = atoi(planeNumber) - 1;
 
-    if ((planes + planeIndex) != NULL) {
-        printf("\n\\\\\\\\\\\\| Passenger Ready Queue |///////\n");
+    if (planeIndex < PLANES_QUANT && planeIndex >= 0) {
+        if ((planes + planeIndex) != NULL) {
+            printf("\n\\\\\\\\\\\\| Passenger Ready Queue |///////\n");
 
-        for (; j < (planes + planeIndex) -> quantPassengersReady; j++){
-            printfPassenger((planes + planeIndex) -> passengersReady[j]);
-        }
+            for (; j < (planes + planeIndex) -> quantPassengersReady; j++){
+                printfPassenger((planes + planeIndex) -> passengersReady[j]);
+            }
 
-        printf("\n-------| Passenger StandBy Queue |-------\n");
-        for (j = 0; j < (planes + planeIndex) -> quantPassengersStandby; j++){
-            printfPassenger((planes + planeIndex) -> passengersStandby[j]);
+            printf("\n-------| Passenger StandBy Queue |-------\n");
+            for (j = 0; j < (planes + planeIndex) -> quantPassengersStandby; j++){
+                printfPassenger((planes + planeIndex) -> passengersStandby[j]);
+            }
         }
     }
-
 }
 
-void end() {
+void listPassengerAux(Plane *plane) {
+    int j = 0;
 
+
+    printf("\n--------------------------------------------------");
+    printf("\n\\\\\\\\\\\\| Passenger Ready Queue |///////\n");
+
+    for (; j < plane -> quantPassengersReady; j++){
+        printfPassenger(plane -> passengersReady[j]);
+    }
+
+    printf("\n-------| Passenger StandBy Queue |-------\n");
+    for (j = 0; j < plane -> quantPassengersStandby; j++){
+        printfPassenger(plane -> passengersStandby[j]);
+    }
+    printf("\n--------------------------------------------------\n");
+}
+
+void end(Plane *planes) {
+    for (int i = 0; i < PLANES_QUANT; i++) {
+        if ((planes + i) != NULL && (planes + i) -> passengersReady != 0) {
+            printf("Plane: %d", (planes + i) -> planeID);
+
+            listPassengerAux((planes + i));
+            (planes + i) -> quantPassengersReady = 0;
+            (planes + i) -> quantPassengersStandby = 0;
+        } else {
+            printf("Plane %d is not being used", (planes + i) -> planeID);
+        }
+    }
 }
