@@ -11,9 +11,14 @@ Passenger* removeAux(Plane *plane, char *bi);
 Passenger* removeFirst(Passenger **passengerList, int size);
 Passenger* verifyPassengerByBI(char *comand, Plane *planes);
 Passenger* verifyPassengerByName(char *comand, Plane *planes);
+void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi);
+void saveDataOnPassenger(Passenger *newPassenger, char *firstName, char *lastName, char *bi);
+void addPassenger(Plane *plane, Passenger *newPassenger);
 int verifyName(char *name);
+int equalStrings(char *string1, char *string2);
 void printfPassenger(Passenger *passenger);
 int getStringSize(char *string);
+void setNameAsBadName(char *name);
 void listPassengerOnThePlane(char *comand, Plane *planes);
 void end();
 
@@ -104,6 +109,27 @@ void printfPassenger(Passenger *passenger) {
     }
 }
 
+void registerPassenger(char *comand, Plane *planes) {
+    char planeNumber[PLANE_ID_SIZE];
+    initializePlaneNumber(planeNumber);
+    char firstName[NAME_LENGTH];
+    char lastName[NAME_LENGTH];
+    char bi[BI_LENGTH];
+
+    Passenger *newPassenger = (Passenger *)(malloc(sizeof(Passenger)));
+    readData(comand, planeNumber, firstName, lastName, bi);  // Insert all data sended to each corresponded field
+
+    if (firstName[0] == '0' || lastName[0] == '0') {
+        printf("\nNomes do passageiro Incorrectos\n");
+    } else {
+        saveDataOnPassenger(newPassenger, firstName, lastName, bi);
+
+        int planeIndex = atoi(planeNumber) - 1;
+
+        addPassenger((planes + planeIndex), newPassenger);
+    }
+}
+
 void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi) {
     int j = 0;
     int i = 4;
@@ -133,6 +159,13 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
     for (; *(comand + i) != ' '; i++) {
         bi[j] = *(comand + i);
         j++;
+    }
+
+    if (verifyName(firstName) == -1) {
+        setNameAsBadName(firstName);
+    }
+    if (verifyName(lastName) == -1) {
+        setNameAsBadName(lastName);
     }
 }
 
@@ -210,23 +243,6 @@ void addPassenger(Plane *plane, Passenger *newPassenger) {
     }
 }
 
-void registerPassenger(char *comand, Plane *planes) {
-    char planeNumber[PLANE_ID_SIZE];
-    initializePlaneNumber(planeNumber);
-    char firstName[NAME_LENGTH];
-    char lastName[NAME_LENGTH];
-    char bi[BI_LENGTH];
-
-    Passenger *newPassenger = (Passenger *)(malloc(sizeof(Passenger)));
-    readData(comand, planeNumber, firstName, lastName, bi);  // Insert all data sended to each corresponded field
-
-    saveDataOnPassenger(newPassenger, firstName, lastName, bi);
-
-    int planeIndex = atoi(planeNumber) - 1;
-
-    addPassenger((planes + planeIndex), newPassenger);
-}
-
 int getStringSize(char *string) {
     int i = 0;
 
@@ -250,6 +266,10 @@ int equalStrings(char *bi1, char *bi2) {
         }
     }
     return 1;
+}
+
+void setNameAsBadName(char *name) {
+    *(name + 0) = '0';
 }
 
 Passenger* removeFirst(Passenger **passengerList, int size) {
@@ -299,7 +319,7 @@ Passenger* removeAux(Plane *plane, char *bi) {
             removedPassenger = plane -> passengersStandby[startDeleteIndex];
 
             if (removedPassenger != NULL) {
-                printf("\nPassageiro removido do vôo\n")
+                printf("\nPassageiro removido do vôo\n");
             }
             for (int i = startDeleteIndex; i < plane -> quantPassengersStandby - 1; i++) {
                 plane -> passengersStandby[i] = plane -> passengersStandby[i + 1];
@@ -445,10 +465,10 @@ int verifyPlaneID(int planeID) {
     return 1;
 }
 
-int verifyName(int *name) {
+int verifyName(char *name) {
     int i = 0;
 
-    while (*(name + i) != '\0' && (*(name + i) >= 10 && *(name + i) <= 20)) {
+    while (*(name + i) != '\0' && ((*(name + i) >= 60 && *(name + i) <= 90) || (*(name + i) >= 97 && *(name + i) <= 122))) {
         i++;
     }
 
