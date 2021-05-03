@@ -11,6 +11,7 @@ Passenger* removeAux(Plane *plane, char *bi);
 Passenger* removeFirst(Passenger **passengerList, int size);
 Passenger* verifyPassengerByBI(char *comand, Plane *planes);
 Passenger* verifyPassengerByName(char *comand, Plane *planes);
+int verifyName(char *name);
 void printfPassenger(Passenger *passenger);
 int getStringSize(char *string);
 void listPassengerOnThePlane(char *comand, Plane *planes);
@@ -440,6 +441,19 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
 int verifyPlaneID(int planeID) {
     if (planeID <= 0 || planeID > PLANES_QUANT) {
         return 0;
+    }
+    return 1;
+}
+
+int verifyName(int *name) {
+    int i = 0;
+
+    while (*(name + i) != '\0' && (*(name + i) >= 10 && *(name + i) <= 20)) {
+        i++;
+    }
+
+    if (*(name + i) != '\0') {
+        return -1;
     }
     return 1;
 }
