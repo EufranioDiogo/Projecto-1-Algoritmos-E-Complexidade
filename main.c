@@ -11,6 +11,8 @@ Passenger* removeAux(Plane *plane, char *bi);
 Passenger* removeFirst(Passenger **passengerList, int size);
 Passenger* verifyPassengerByBI(char *comand, Plane *planes);
 Passenger* verifyPassengerByName(char *comand, Plane *planes);
+int verifyPassengerUnicity(Plane *planes, Passenger* newPassenger);
+int verifyExistenceOfPassenger(Plane *plane, Passenger *passenger);
 void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi);
 void saveDataOnPassenger(Passenger *newPassenger, char *firstName, char *lastName, char *bi);
 void addPassenger(Plane *plane, Passenger *newPassenger);
@@ -113,15 +115,15 @@ void printfPassenger(Passenger *passenger) {
 void registerPassenger(char *comand, Plane *planes) {
     char planeNumber[PLANE_ID_SIZE];
     initializePlaneNumber(planeNumber);
-    char firstName[NAME_LENGTH];
-    char lastName[NAME_LENGTH];
+    char *firstName = (char *)(malloc(sizeof(char) * NAME_LENGTH));
+    char *lastName = (char *)(malloc(sizeof(char) * NAME_LENGTH));
     char bi[BI_LENGTH];
     int planeIndex;
 
     Passenger *newPassenger = (Passenger *)(malloc(sizeof(Passenger)));
     readData(comand, planeNumber, firstName, lastName, bi);  // Insert all data sended to each corresponded field
 
-
+    printf("\n First name: %s", firstName);
 
     planeIndex = atoi(planeNumber) - 1;
 
@@ -131,7 +133,13 @@ void registerPassenger(char *comand, Plane *planes) {
         } else {
             saveDataOnPassenger(newPassenger, firstName, lastName, bi);
 
-            addPassenger((planes + planeIndex), newPassenger);
+            int flag = verifyPassengerUnicity(planes, newPassenger);
+
+            if (flag >= 0) {
+                printf("\nPassageiro existe já em no vôo: %d\n", flag);
+            } else {
+                addPassenger((planes + planeIndex), newPassenger);
+            }            
         }
     } else {
         printf("\nErro - Número do voo Inválido");
@@ -139,7 +147,7 @@ void registerPassenger(char *comand, Plane *planes) {
     
 }
 
-void readData(char *comand, char *planeNumber, char *firstName, char *lastName, char *bi) {
+void readData(char *comand, char *planeNumber, char firstName[], char *lastName, char *bi) {
     int j = 0;
     int i = 4;
     
@@ -155,6 +163,7 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
         firstName[j] = *(comand + i);
         j++;
     }
+    firstName[j] = '\0';
 
     j = 0;
     i++;
@@ -170,6 +179,7 @@ void readData(char *comand, char *planeNumber, char *firstName, char *lastName, 
         bi[j] = *(comand + i);
         j++;
     }
+    bi[j] = '\0';
 
     if (verifyName(firstName) == -1) {
         setNameAsBadName(firstName);
@@ -265,7 +275,9 @@ int getStringSize(char *string) {
 int equalStrings(char *bi1, char *bi2) {
     int size1 = getStringSize(bi1);
     int size2 = getStringSize(bi2);
-    
+
+    printf("\nSize 1: %d | Size: %d", size1, size2);
+
     if (size1 != size2) {
         return 0;
     }
@@ -392,7 +404,7 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
         j = 0;
         i++;
 
-        for (; *(comand + i) != ' '; i++) {
+        for (; *(comand + i) != '\0'; i++) {
             bi[j] = *(comand + i);
             j++;
         }
@@ -402,7 +414,7 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
 
         i = 0;
 
-        for (i = 0; i < plane -> quantPassengersReady; i++) {
+        for (; i < plane -> quantPassengersReady; i++) {
             if (equalStrings((plane -> passengersReady[i] -> bi), bi)) {
                 passengerFounded = (plane -> passengersReady[i]);
                 i = plane -> quantPassengersReady;
@@ -411,7 +423,7 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
 
         if (passengerFounded == NULL) {
             i = 0;
-            for (i = 0; i < plane -> quantPassengersStandby; i++) {
+            for (; i < plane -> quantPassengersStandby; i++) {
                 if (equalStrings((plane -> passengersStandby[i] -> bi), bi)) {
                     passengerFounded = (plane -> passengersStandby[i]);
                     i = plane -> quantPassengersStandby;
@@ -439,39 +451,78 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
     int j = 0;
     int i = 4;
     char firstName[NAME_LENGTH];
+    int planeIndex = 0;
+    char planeNumber[PLANE_ID_SIZE];
+    initializePlaneNumber(planeNumber);
 
     for (; *(comand + i) != ' '; i++) {
-        firstName[j] = *(comand + i);
+        planeNumber[j] = *(comand + i);
         j++;
     }
+    
+    planeIndex = atoi(planeNumber) - 1;
 
-    Passenger *passengerFounded = NULL;
+    i++;
+    
 
-    for (int k = 0; k < PLANES_QUANT; k++) {
-        Plane *plane = (planes + k);
+    if (planeIndex >=  0 && planeIndex < PLANES_QUANT) {
+        for (; *(comand + i) != '\0'; i++) {
+            firstName[j] = *(comand + i);
+            j++;
+        }
+
+        Passenger *passengerFounded = NULL;
+
+        Plane *plane = (planes + planeIndex);
 
         for (int l = 0; l < plane -> quantPassengersReady; l++) {
-            if (equalStrings((plane -> passengersReady[l] -> firstName), firstName)) {
+            if (equalStrings((plane -> passengersReady[l] -> firstName), firstName) != 0) {
                 passengerFounded = (plane -> passengersReady[l]);
-                break;
+                return passengerFounded;
             }
         }
 
         if (passengerFounded == NULL) {
             for (int l = 0; l < plane -> quantPassengersStandby; l++) {
-                if (equalStrings((plane -> passengersStandby[l] -> firstName), firstName)) {
+                if (equalStrings((plane -> passengersStandby[l] -> firstName), firstName) != 0) {
                     passengerFounded = (plane -> passengersStandby[l]);
-                    break;
+                    return passengerFounded;
                 }
             }
         }
 
-        if (passengerFounded != NULL) {
-            return passengerFounded;
+        return passengerFounded;
+    }
+    return NULL;
+}
+
+int verifyPassengerUnicity(Plane *planes, Passenger *passenger) {
+    int flag = -1;
+
+    for (int i = 0; i < PLANES_QUANT; i++) {
+        flag = verifyExistenceOfPassenger((planes + i), passenger);
+
+        if (flag >= 0) {
+            return i;
         }
     }
 
-    return passengerFounded;
+    return -1;
+}
+
+int verifyExistenceOfPassenger(Plane *plane, Passenger *passenger) {
+    for (int i = 0; i < plane -> quantPassengersReady; i++) {
+        if (equalStrings(passenger -> bi, (plane -> passengersReady[i]) -> bi) != 0) {
+            return i;
+        }
+    }
+
+    for (int i = 0; i < plane -> quantPassengersStandby; i++) {
+        if (equalStrings(passenger -> bi, (plane -> passengersStandby[i]) -> bi) != 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 /*
 ---------------------------------
@@ -490,7 +541,7 @@ int verifyName(char *name) {
     int stringSize = getStringSize(name);
 
     while (i < stringSize) {
-        if (! ( (*(name + i) >= 60 && *(name + i) <= 90) || (*(name + i) >= 97 && *(name + i) <= 122) ) ) {
+        if (! ( (*(name + i) >= 65 && *(name + i) <= 90) || (*(name + i) >= 97 && *(name + i) <= 122) ) ) {
             return -1;
         }
         i++;

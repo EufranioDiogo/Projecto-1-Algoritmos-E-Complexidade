@@ -1,12 +1,11 @@
 #define NAME_LENGTH 100
-#define BI_LENGTH 17
+#define BI_LENGTH 9
 #define PASSENGER_ON_PLANE 5
 
 typedef struct node {
     char firstName[NAME_LENGTH];
     char lastName[NAME_LENGTH];
     char bi[BI_LENGTH];
-    struct node *nextNode;
 } Passenger;
 
 typedef struct plane {
