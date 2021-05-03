@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "tda.h"
 #define INSTRUCTION_LENGTH 120
-#define PLANES_QUANT 12
+#define PLANES_QUANT 20
 #define PLANE_ID_SIZE 4
 
 void registerPassenger(char *comand, Plane *planes);
