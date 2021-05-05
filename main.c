@@ -21,6 +21,8 @@ int equalStrings(char *string1, char *string2);
 int convertStringToInt(char *string);
 void printfPassenger(Passenger *passenger);
 int getStringSize(char *string);
+int quantFieldsOnCommand(char *command);
+int verifyCommand(int commandCode, int lenCommand);
 void setNameAsBadName(char *name);
 void listPassengerOnThePlane(char *comand, Plane *planes);
 void end();
@@ -28,9 +30,14 @@ void end();
 
 int checkComand(char *comand) {
     int i = 0;
-    char result[4];
+    char result[5];
+    char splitCharacter = ' ';
 
-    while (*(comand + i) != ' ') {
+    if (quantFieldsOnCommand(comand) == 0) {
+        splitCharacter = '\0';
+    }
+
+    while (*(comand + i) != splitCharacter) {
         result[i] = *(comand + i);
         i++;
     }
@@ -43,11 +50,13 @@ int checkComand(char *comand) {
         return 3;
     } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'N') {
         return 4;
-    }  else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
+    } else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
         return 6;
     } else if (result[0] == 'L' && result[1] == 'I' && result[2] == 'S' && result[3] == 'T') {
         return 5;
     }
+
+    
     return -1;
 }
 
@@ -65,6 +74,7 @@ void initializePlaneNumber(char *planeNumber) {
     }
 }
 
+
 int main() {
     char instrucao[INSTRUCTION_LENGTH];
     Plane *planes = (Plane *)(malloc(PLANES_QUANT * sizeof(Plane)));
@@ -77,26 +87,33 @@ int main() {
     for (; comandCode != 6;) {
         printf("\n-------------------------------------\n");
         fgets(comand, sizeof(comand), stdin);
+
         comandCode = checkComand(comand);
+        int lenCommand = quantFieldsOnCommand(comand);
 
         if (comandCode != -1) {
-            if (comandCode == 1) {
-                registerPassenger(comand, planes);
-            } else if (comandCode == 2) {
-                Passenger *passengerRemoved = removePassenger(comand, planes);
-            } else if (comandCode == 3) {
-                printf("\n--------- Verify by BI ------------\n");
-                printfPassenger(verifyPassengerByBI(comand, planes));
-            } else if (comandCode == 4) {
-                printf("\n--------- Verify by First Name ------------\n");
-                printfPassenger(verifyPassengerByName(comand, planes));
-            } else if (comandCode == 5) {
-                listPassengerOnThePlane(comand, planes);
+            if (verifyCommand(comandCode, lenCommand) == 1) {
+                if (comandCode == 1) {
+                    registerPassenger(comand, planes);
+                } else if (comandCode == 2) {
+                    Passenger *passengerRemoved = removePassenger(comand, planes);
+                } else if (comandCode == 3) {
+                    printf("\n--------- Verify by BI ------------\n");
+                    printfPassenger(verifyPassengerByBI(comand, planes));
+                } else if (comandCode == 4) {
+                    printf("\n--------- Verify by First Name ------------\n");
+                    printfPassenger(verifyPassengerByName(comand, planes));
+                } else if (comandCode == 5) {
+                    listPassengerOnThePlane(comand, planes);
+                } else {
+                    end(planes);
+                    printf("\nProgram closed");
+                    comandCode = 6;
+                }
             } else {
-                end(planes);
-                printf("\nProgram closed");
-                break;
+                printf("\nErro Sintaxe, Sintaxe do comando errada");
             }
+            
         } else {
             printf("\nCOMAND NOT FOUNDED");
         }
@@ -122,8 +139,6 @@ void registerPassenger(char *comand, Plane *planes) {
 
     Passenger *newPassenger = (Passenger *)(malloc(sizeof(Passenger)));
     readData(comand, planeNumber, firstName, lastName, bi);  // Insert all data sended to each corresponded field
-
-    printf("\n First name: %s", firstName);
 
     planeIndex = atoi(planeNumber) - 1;
 
@@ -261,6 +276,19 @@ void addPassenger(Plane *plane, Passenger *newPassenger) {
             }
         }
     }
+}
+
+int quantFieldsOnCommand(char *command) {
+    int size = 0;
+    int i = 0;
+
+    while (*(command + i) != '\0') {
+        if (*(command + i) == ' ') {
+            size++;
+        }
+        i++;
+    }
+    return size;
 }
 
 int getStringSize(char *string) {
@@ -549,6 +577,21 @@ int verifyName(char *name) {
     return 1;
 }
 
+int verifyCommand(int commandCode, int lenCommand) {
+    if (commandCode == 1 && lenCommand == 4) {
+        return 1;
+    }
+    if (lenCommand == 2 && (commandCode == 2 || commandCode == 3 || commandCode == 4)) {
+        return 1;
+    }
+    if (commandCode == 5 && lenCommand == 1) {
+        return 1;
+    } 
+    if (commandCode == 6 && lenCommand == 0) {
+        return 1;
+    }
+    return 0;
+}
 int convertStringToInt(char *string) {
     int resultInt = 0;
 
