@@ -478,49 +478,55 @@ TO WORK ON
 Passenger* verifyPassengerByName(char *comand, Plane *planes) {
     int j = 0;
     int i = 4;
-    char firstName[NAME_LENGTH];
-    int planeIndex = 0;
     char planeNumber[PLANE_ID_SIZE];
     initializePlaneNumber(planeNumber);
+    char firstName[NAME_LENGTH];
 
-    for (j = 0; *(comand + i) != ' '; i++) {
+    for (; *(comand + i) != ' '; i++) {
         planeNumber[j] = *(comand + i);
         j++;
     }
-    
-    planeIndex = atoi(planeNumber) - 1;
+    int planeIndex = atoi(planeNumber) - 1;
 
-    if (planeIndex >=  0 && planeIndex < PLANES_QUANT) {
+    if (planeIndex >= 0 && planeIndex < PLANES_QUANT) {
         j = 0;
         i++;
 
         for (; *(comand + i) != '\0'; i++, j++) {
             firstName[j] = *(comand + i);
         }
-        firstName[j] = '\0';
+        firstName[j] = '\0'
 
         Passenger *passengerFounded = NULL;
-
         Plane *plane = (planes + planeIndex);
 
-        for (int l = 0; l < plane -> quantPassengersReady; l++) {
-            if (equalStrings((plane -> passengersReady[l] -> firstName), firstName) != 0) {
-                passengerFounded = (plane -> passengersReady[l]);
-                return passengerFounded;
+        i = 0;
+
+        for (; i < plane -> quantPassengersReady; i++) {
+            if (equalStrings((plane -> passengersReady[i] -> firstName), firstName)) {
+                passengerFounded = (plane -> passengersReady[i]);
+                i = plane -> quantPassengersReady;
             }
         }
 
         if (passengerFounded == NULL) {
-            for (int l = 0; l < plane -> quantPassengersStandby; l++) {
-                if (equalStrings((plane -> passengersStandby[l] -> firstName), firstName) != 0) {
-                    passengerFounded = (plane -> passengersStandby[l]);
-                    return passengerFounded;
+            i = 0;
+            for (; i < plane -> quantPassengersStandby; i++) {
+                if (equalStrings((plane -> passengersStandby[i] -> firstName), firstName)) {
+                    passengerFounded = (plane -> passengersStandby[i]);
+                    i = plane -> quantPassengersStandby;
                 }
             }
-        }
 
+            if(passengerFounded != NULL) {
+                printf("Passenger on Standby List");
+            }
+        } else {
+            printf("Passenger on Ready List");
+        }
         return passengerFounded;
     }
+    printf("\nErro - Número do voo Inválido");
     return NULL;
 }
 
