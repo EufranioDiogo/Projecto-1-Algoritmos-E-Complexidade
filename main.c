@@ -432,10 +432,10 @@ Passenger* verifyPassengerByBI(char *comand, Plane *planes) {
         j = 0;
         i++;
 
-        for (; *(comand + i) != '\0'; i++) {
+        for (; *(comand + i) != '\0'; i++, j++) {
             bi[j] = *(comand + i);
-            j++;
         }
+        bi[j] = '\0';
 
         Passenger *passengerFounded = NULL;
         Plane *plane = (planes + planeIndex);
@@ -483,21 +483,21 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
     char planeNumber[PLANE_ID_SIZE];
     initializePlaneNumber(planeNumber);
 
-    for (; *(comand + i) != ' '; i++) {
+    for (j = 0; *(comand + i) != ' '; i++) {
         planeNumber[j] = *(comand + i);
         j++;
     }
     
     planeIndex = atoi(planeNumber) - 1;
 
-    i++;
-    
-
     if (planeIndex >=  0 && planeIndex < PLANES_QUANT) {
-        for (; *(comand + i) != '\0'; i++) {
+        j = 0;
+        i++;
+
+        for (; *(comand + i) != '\0'; i++, j++) {
             firstName[j] = *(comand + i);
-            j++;
         }
+        firstName[j] = '\0';
 
         Passenger *passengerFounded = NULL;
 
