@@ -42,21 +42,22 @@ int checkComand(char *comand) {
         i++;
     }
 
-    if (result[0] == 'I' && result[1] == 'N' && result[2] == 'C') {
-        return 1;
-    } else if (result[0] == 'R' && result[1] == 'E' && result[2] == 'M') {
-        return 2;
-    } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'B') {
-        return 3;
-    } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'N') {
-        return 4;
-    } else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
-        return 6;
-    } else if (result[0] == 'L' && result[1] == 'I' && result[2] == 'S' && result[3] == 'T') {
-        return 5;
+    if (getStringSize(result) >= 3) {
+        if (result[0] == 'I' && result[1] == 'N' && result[2] == 'C') {
+            return 1;
+        } else if (result[0] == 'R' && result[1] == 'E' && result[2] == 'M') {
+            return 2;
+        } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'B') {
+            return 3;
+        } else if (result[0] == 'V' && result[1] == 'E' && result[2] == 'N') {
+            return 4;
+        } else if (result[0] == 'F' && result[1] == 'I' && result[2] == 'M') {
+            return 6;
+        } else if (result[0] == 'L' && result[1] == 'I' && result[2] == 'S' && result[3] == 'T') {
+            return 5;
+        }
     }
 
-    
     return -1;
 }
 
@@ -97,6 +98,8 @@ int main() {
                     registerPassenger(comand, planes);
                 } else if (comandCode == 2) {
                     Passenger *passengerRemoved = removePassenger(comand, planes);
+                    printf("\nPassenger Removed:");
+                    printfPassenger(passengerRemoved);
                 } else if (comandCode == 3) {
                     printf("\n--------- Verify by BI ------------\n");
                     printfPassenger(verifyPassengerByBI(comand, planes));
@@ -304,7 +307,7 @@ int equalStrings(char *bi1, char *bi2) {
     int size1 = getStringSize(bi1);
     int size2 = getStringSize(bi2);
 
-    printf("\nSize 1: %d | Size: %d", size1, size2);
+    //  printf("\nSize 1: %d | Size: %d", size1, size2);
 
     if (size1 != size2) {
         return 0;
@@ -495,17 +498,18 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
         for (; *(comand + i) != '\0'; i++, j++) {
             firstName[j] = *(comand + i);
         }
-        firstName[j] = '\0'
+        firstName[j - 1] = '\0';
 
         Passenger *passengerFounded = NULL;
         Plane *plane = (planes + planeIndex);
 
         i = 0;
 
+        printf("\nPassenger Ready List: ");
         for (; i < plane -> quantPassengersReady; i++) {
             if (equalStrings((plane -> passengersReady[i] -> firstName), firstName)) {
                 passengerFounded = (plane -> passengersReady[i]);
-                i = plane -> quantPassengersReady;
+                printfPassenger(passengerFounded);
             }
         }
 
@@ -514,7 +518,7 @@ Passenger* verifyPassengerByName(char *comand, Plane *planes) {
             for (; i < plane -> quantPassengersStandby; i++) {
                 if (equalStrings((plane -> passengersStandby[i] -> firstName), firstName)) {
                     passengerFounded = (plane -> passengersStandby[i]);
-                    i = plane -> quantPassengersStandby;
+                    printfPassenger(passengerFounded);
                 }
             }
 
