@@ -99,7 +99,6 @@ int main() {
                 } else if (comandCode == 2) {
                     Passenger *passengerRemoved = removePassenger(comand, planes);
                     printf("\nPassenger Removed:");
-                    printfPassenger(passengerRemoved);
                 } else if (comandCode == 3) {
                     printf("\n--------- Verify by BI ------------\n");
                     printfPassenger(verifyPassengerByBI(comand, planes));
